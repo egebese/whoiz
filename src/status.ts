@@ -157,6 +157,86 @@ const TABLE: Record<string, StatusMeta> = {
     description: "Domain expired and is in redemption. Original owner can restore for a hefty fee (~$80–$150) for ~30 days. Not registerable by others yet.",
     severity: "warn",
   },
+
+  // ccTLD-specific (DENIC, TRABIS, AFNIC, etc.) — not EPP but commonly seen
+  connect: {
+    code: "connect",
+    label: "Connected (.de)",
+    description: "DENIC: domain is registered and resolvable.",
+    severity: "good",
+  },
+  free: {
+    code: "free",
+    label: "Free (.de)",
+    description: "DENIC: domain is not registered and is registerable.",
+    severity: "info",
+  },
+  failed: {
+    code: "failed",
+    label: "Failed (.de)",
+    description: "DENIC: registration could not complete (technical error).",
+    severity: "bad",
+  },
+  invalid: {
+    code: "invalid",
+    label: "Invalid (.de)",
+    description: "DENIC: domain name is not valid under .de policy.",
+    severity: "bad",
+  },
+  ACTIVE: {
+    code: "ACTIVE",
+    label: "Active",
+    description: "ccTLD registry: domain is registered and active.",
+    severity: "good",
+  },
+  RESERVED: {
+    code: "RESERVED",
+    label: "Reserved",
+    description: "Registry-reserved name (e.g. .tr blocks generic terms).",
+    severity: "warn",
+  },
+  RESTRICTED: {
+    code: "RESTRICTED",
+    label: "Restricted",
+    description: "Registration requires extra eligibility (e.g. local presence).",
+    severity: "warn",
+  },
+  BLOCKED: {
+    code: "BLOCKED",
+    label: "Blocked",
+    description: "Registry has blocked this name (legal/dispute).",
+    severity: "bad",
+  },
+  FROZEN: {
+    code: "FROZEN",
+    label: "Frozen (AFNIC)",
+    description: "AFNIC (.fr): domain is frozen by registry — usually pending owner action.",
+    severity: "warn",
+  },
+  "in quarantine": {
+    code: "in quarantine",
+    label: "Quarantine (.nl)",
+    description: "SIDN (.nl): domain expired and is in 40-day quarantine before being released.",
+    severity: "warn",
+  },
+  REGISTERED: {
+    code: "REGISTERED",
+    label: "Registered",
+    description: "Registry confirms an active registration.",
+    severity: "good",
+  },
+  DELEGATED: {
+    code: "DELEGATED",
+    label: "Delegated",
+    description: "Nameservers are configured at the registry — DNS will work.",
+    severity: "good",
+  },
+  VERIFIED: {
+    code: "VERIFIED",
+    label: "Verified",
+    description: "Registrant identity has been verified by the registrar.",
+    severity: "good",
+  },
 };
 
 const LOWER_INDEX: Record<string, StatusMeta> = Object.fromEntries(

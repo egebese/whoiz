@@ -22,6 +22,9 @@ npx @egebese/whoiz google.com
 - **Lifecycle awareness** — knows the difference between `redemptionPeriod`, `pendingDelete`, auto-renew grace, and gives an ETA for when a domain becomes registerable again.
 - **Available? Browser opens.** — when a domain is free, `whoiz` opens a Spaceship search so you can grab it in one step. (`--no-open` to disable.)
 - **TUI mode** — `whoiz a.com b.com --tui` for an interactive Ink-based viewer.
+- **Watch mode** — `whoiz a.com --watch` re-polls in place, default every 60s.
+- **ccTLD-aware** — falls back to system `whois` for TLDs like `.tr`, `.de`, `.fr`, `.nl`, `.it`, `.ru` and decodes their non-EPP status codes.
+- **Shell completion** — `whoiz --completion bash|zsh|fish` ships ready-to-source scripts.
 - **JSON output** — `--json` for scripting.
 
 ## Install
@@ -103,6 +106,31 @@ whoiz somenewname.io --no-open
 
 ```bash
 whoiz mybrand.shop -r
+```
+
+### Watch mode
+
+Polls the same domain(s) on a schedule and redraws the box in place.
+
+```bash
+whoiz google.com --watch              # every 60s (default)
+whoiz google.com --watch -i 30        # every 30s
+whoiz a.com b.com --watch -i 600      # check both, every 10min
+```
+
+Stop with Ctrl+C.
+
+### Shell completion
+
+```bash
+# bash
+whoiz --completion bash > /usr/local/etc/bash_completion.d/whoiz
+
+# zsh
+whoiz --completion zsh > "${fpath[1]}/_whoiz" && compinit
+
+# fish
+whoiz --completion fish > ~/.config/fish/completions/whoiz.fish
 ```
 
 ## How the lifecycle is interpreted
