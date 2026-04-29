@@ -1,0 +1,60 @@
+{
+  "name": "whoiz",
+  "version": "0.1.0",
+  "description": "Pretty whois CLI — bulk lookups, EPP status & period explanations, instant register link",
+  "keywords": [
+    "whois",
+    "domain",
+    "cli",
+    "tui",
+    "epp",
+    "redemption",
+    "expiry",
+    "registrar",
+    "spaceship"
+  ],
+  "type": "module",
+  "bin": {
+    "whoiz": "./bin/whoiz.js"
+  },
+  "main": "./dist/cli.js",
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "start": "node bin/whoiz.js",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ink": "^5.1.0",
+    "meow": "^13.2.0",
+    "open": "^10.1.0",
+    "picocolors": "^1.1.1",
+    "react": "^18.3.1",
+    "string-width": "^7.2.0",
+    "whoiser": "^1.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egebese/whoiz.git"
+  },
+  "homepage": "https://github.com/egebese/whoiz#readme",
+  "bugs": {
+    "url": "https://github.com/egebese/whoiz/issues"
+  },
+  "author": "Ege Beşe",
+  "license": "MIT"
+}
