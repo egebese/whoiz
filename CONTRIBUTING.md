@@ -20,7 +20,7 @@ To test changes globally on your shell:
 ```bash
 npm link            # makes `whoiz` resolve to your working tree
 whoiz cloudflare.com
-npm unlink -g whoiz # when done
+npm unlink -g @egebese/whoiz # when done
 ```
 
 ## Project layout

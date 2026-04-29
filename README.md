@@ -4,11 +4,11 @@ Pretty `whois` for humans. Bulk lookups, EPP status decoding, redemption-period
 explanations, and a one-keystroke jump to a registrar when a domain is free.
 
 ```bash
-npx whoiz google.com
+npx @egebese/whoiz google.com
 ```
 
-[![npm version](https://img.shields.io/npm/v/whoiz.svg?color=cb3837&logo=npm)](https://www.npmjs.com/package/whoiz)
-[![npm downloads](https://img.shields.io/npm/dm/whoiz.svg?color=cb3837)](https://www.npmjs.com/package/whoiz)
+[![npm version](https://img.shields.io/npm/v/@egebese/whoiz.svg?color=cb3837&logo=npm)](https://www.npmjs.com/package/@egebese/whoiz)
+[![npm downloads](https://img.shields.io/npm/dm/@egebese/whoiz.svg?color=cb3837)](https://www.npmjs.com/package/@egebese/whoiz)
 [![GitHub stars](https://img.shields.io/github/stars/egebese/whoiz.svg?style=social)](https://github.com/egebese/whoiz/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/egebese/whoiz.svg)](https://github.com/egebese/whoiz/issues)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -28,12 +28,14 @@ npx whoiz google.com
 
 ```bash
 # one-off via npx
-npx whoiz google.com
+npx @egebese/whoiz google.com
 
 # or install globally
-npm i -g whoiz
+npm i -g @egebese/whoiz
 whoiz google.com
 ```
+
+The CLI command is `whoiz` regardless of how you install it.
 
 ## Usage
 
