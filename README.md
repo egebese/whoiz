@@ -20,7 +20,7 @@ npx @egebese/whoiz google.com
 - **Field queries** — `whoiz a.com status,period` shows only what you asked for.
 - **EPP status decoder** — every `clientTransferProhibited` etc. comes with a plain-language explanation.
 - **Lifecycle awareness** — knows the difference between `redemptionPeriod`, `pendingDelete`, auto-renew grace, and gives an ETA for when a domain becomes registerable again.
-- **Available? Browser opens.** — when a domain is free, `whoiz` opens a Spaceship search so the affiliate cookie is set in one step. (`--no-open` to disable.)
+- **Available? Browser opens.** — when a domain is free, `whoiz` opens a Spaceship search so you can grab it in one step. (`--no-open` to disable.)
 - **TUI mode** — `whoiz a.com b.com --tui` for an interactive Ink-based viewer.
 - **JSON output** — `--json` for scripting.
 
