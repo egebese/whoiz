@@ -3,7 +3,7 @@ import open from "open";
 import pc from "picocolors";
 import { lookup, lookupMany } from "./lookup.js";
 import { renderDomain, renderJson } from "./render.js";
-import { spaceshipSearchUrl } from "./affiliate.js";
+import { spaceshipSearchUrl } from "./links.js";
 
 const cli = meow(
   `

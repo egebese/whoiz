@@ -5,7 +5,7 @@ import open from "open";
 import type { DomainInfo } from "./types.js";
 import { lookup } from "./lookup.js";
 import { getStatusMeta } from "./status.js";
-import { spaceshipSearchUrl, alternativeRegisterLinks } from "./affiliate.js";
+import { spaceshipSearchUrl, alternativeRegisterLinks } from "./links.js";
 
 interface Props {
   domains: string[];

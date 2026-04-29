@@ -2,7 +2,7 @@ import pc from "picocolors";
 import stringWidth from "string-width";
 import type { DomainInfo } from "./types.js";
 import { getStatusMeta } from "./status.js";
-import { alternativeRegisterLinks, spaceshipSearchUrl } from "./affiliate.js";
+import { alternativeRegisterLinks, spaceshipSearchUrl } from "./links.js";
 
 const TERM_COLS = Math.max(60, Math.min(process.stdout.columns ?? 100, 110));
 const BOX_WIDTH = TERM_COLS;
