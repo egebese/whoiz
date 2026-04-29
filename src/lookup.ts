@@ -1,5 +1,6 @@
 import whoiser from "whoiser";
 import type { DomainInfo, DomainState } from "./types.js";
+import { runSystemWhois, parseSystemWhois } from "./system-whois.js";
 
 /** Pick the most useful entry from whoiser's multi-server response. */
 function pickEntry(data: Record<string, any>): Record<string, any> | null {
@@ -70,6 +71,29 @@ function daysBetween(a: Date, b: Date): number {
 function tldOf(domain: string): string {
   const parts = domain.toLowerCase().split(".");
   return parts.slice(1).join(".") || domain;
+}
+
+/** ccTLDs whoiser tends to return empty for — go straight to system whois. */
+const SYSTEM_WHOIS_FIRST = new Set(["tr", "com.tr", "net.tr", "org.tr", "de", "fr", "it", "nl", "ru", "su", "be", "no", "dk", "se", "fi", "pl", "cz"]);
+
+function shouldPreferSystemWhois(tld: string): boolean {
+  return SYSTEM_WHOIS_FIRST.has(tld);
+}
+
+function mergeSystemWhois(base: DomainInfo, parsed: ReturnType<typeof parseSystemWhois>) {
+  if (!base.registrar && parsed.registrar) base.registrar = parsed.registrar;
+  if (!base.registrarUrl && parsed.registrarUrl) base.registrarUrl = parsed.registrarUrl;
+  if (!base.whoisServer && parsed.whoisServer) base.whoisServer = parsed.whoisServer;
+  if (!base.createdDate && parsed.createdDate) base.createdDate = parsed.createdDate;
+  if (!base.updatedDate && parsed.updatedDate) base.updatedDate = parsed.updatedDate;
+  if (!base.expiryDate && parsed.expiryDate) base.expiryDate = parsed.expiryDate;
+  if (!base.dnssec && parsed.dnssec) base.dnssec = parsed.dnssec;
+  if (base.statuses.length === 0 && parsed.statuses && parsed.statuses.length > 0) {
+    base.statuses = parsed.statuses;
+  }
+  if (base.nameServers.length === 0 && parsed.nameServers && parsed.nameServers.length > 0) {
+    base.nameServers = parsed.nameServers;
+  }
 }
 
 function describePeriod(info: DomainInfo): { label?: string; ownerAction?: string; eta?: string } {
@@ -194,17 +218,48 @@ export async function lookup(domain: string, timeoutMs = 8000): Promise<DomainIn
     }
 
     base.state = deriveState(statuses, rawText, hasFields);
-
-    const desc = describePeriod(base);
-    base.periodLabel = desc.label;
-    base.ownerAction = desc.ownerAction;
-    base.estimatedAvailableDate = desc.eta;
-
-    return base;
   } catch (err) {
     base.error = err instanceof Error ? err.message : String(err);
-    return base;
   }
+
+  // Fallback: shell out to system `whois` if whoiser came back empty, the
+  // state is unknown, or this TLD is known to need it.
+  const needsFallback =
+    base.state === "unknown" ||
+    (!base.registrar && !base.expiryDate && base.statuses.length === 0) ||
+    shouldPreferSystemWhois(base.tld);
+
+  if (needsFallback) {
+    const text = await runSystemWhois(domain, timeoutMs);
+    if (text) {
+      const parsed = parseSystemWhois(text);
+      if (parsed.available && base.state === "unknown") {
+        base.state = "available";
+      } else {
+        mergeSystemWhois(base, parsed);
+        if (base.state === "unknown" || base.state === "registered") {
+          const hasFields = Boolean(
+            base.registrar || base.createdDate || base.expiryDate || base.statuses.length > 0,
+          );
+          base.state = deriveState(base.statuses, text, hasFields);
+        }
+      }
+      // Prefer the more complete raw text from system whois when available
+      base.raw = text.slice(0, 4000);
+    }
+  }
+
+  if (base.expiryDate && typeof base.daysToExpiry !== "number") {
+    const d = new Date(base.expiryDate);
+    if (!Number.isNaN(d.getTime())) base.daysToExpiry = daysBetween(d, new Date());
+  }
+
+  const desc = describePeriod(base);
+  base.periodLabel = desc.label;
+  base.ownerAction = desc.ownerAction;
+  base.estimatedAvailableDate = desc.eta;
+
+  return base;
 }
 
 export async function lookupMany(
