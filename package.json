@@ -1,6 +1,6 @@
 {
   "name": "@egebese/whoiz",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publishConfig": {
     "access": "public"
   },
@@ -18,7 +18,7 @@
   ],
   "type": "module",
   "bin": {
-    "whoiz": "./bin/whoiz.js"
+    "whoiz": "bin/whoiz.js"
   },
   "main": "./dist/cli.js",
   "files": [
