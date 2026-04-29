@@ -63,13 +63,22 @@ Available field tokens: `status`, `period`, `expiry`, `created`, `updated`,
 
 ### TUI mode
 
+Bare `whoiz` (no arguments) launches the interactive TUI. You can also start
+with domains preloaded:
+
 ```bash
-whoiz cloudflare.com vercel.com github.com --tui
+whoiz                       # empty TUI, type to query
+whoiz --tui                 # same thing, explicit
+whoiz cloudflare.com --tui  # preload one or more lookups
 ```
 
-- `↑` / `↓` (or `j` / `k`) — switch domain
-- `o` — open current domain on Spaceship
-- `q` — quit
+In the TUI:
+
+- Type a domain (or several, separated by space/comma) and press **Enter** to look up.
+- **Tab** / **Shift+Tab** — switch between previous lookups.
+- **Ctrl+O** — open the current domain on Spaceship in your browser.
+- **Ctrl+D** — drop the current entry from history.
+- **Esc** or **Ctrl+C** — quit.
 
 ### JSON
 

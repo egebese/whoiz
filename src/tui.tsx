@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { Box, Text, useApp, useInput, render } from "ink";
+import TextInput from "ink-text-input";
 import open from "open";
 import type { DomainInfo } from "./types.js";
 import { lookup } from "./lookup.js";
 import { getStatusMeta } from "./status.js";
-import { spaceshipSearchUrl } from "./affiliate.js";
+import { spaceshipSearchUrl, alternativeRegisterLinks } from "./affiliate.js";
 
 interface Props {
   domains: string[];
 }
 
 interface Entry {
+  id: number;
   domain: string;
   state: "loading" | "ready";
   info?: DomainInfo;
 }
+
+let nextId = 1;
 
 function StateBadge({ info }: { info?: DomainInfo }) {
   if (!info) return <Text color="gray">…</Text>;
@@ -36,6 +40,26 @@ function StateBadge({ info }: { info?: DomainInfo }) {
   }
 }
 
+function shortBadge(info?: DomainInfo) {
+  if (!info) return "…";
+  switch (info.state) {
+    case "available":
+      return "AVAIL";
+    case "registered":
+      return "REG";
+    case "redemption":
+      return "REDEMP";
+    case "pending-delete":
+      return "PDEL";
+    case "pending-transfer":
+      return "PXFR";
+    case "hold":
+      return "HOLD";
+    default:
+      return "?";
+  }
+}
+
 function fmtDate(s?: string) {
   if (!s) return "—";
   const d = new Date(s);
@@ -44,7 +68,10 @@ function fmtDate(s?: string) {
 }
 
 function Detail({ info }: { info?: DomainInfo }) {
-  if (!info) return <Text color="gray">loading…</Text>;
+  if (!info)
+    return (
+      <Text color="gray">looking up…</Text>
+    );
   if (info.error && info.state === "unknown") {
     return <Text color="red">error: {info.error}</Text>;
   }
@@ -54,8 +81,16 @@ function Detail({ info }: { info?: DomainInfo }) {
         <Text color="green" bold>Available for registration</Text>
         <Box height={1} />
         <Text bold>Register at:</Text>
-        <Text color="cyan">  Spaceship  {spaceshipSearchUrl(info.domain)}</Text>
-        <Text dimColor>  Press [o] to open Spaceship search in browser.</Text>
+        {alternativeRegisterLinks(info.domain).map((l) => (
+          <Text key={l.name}>
+            <Text color={l.name === "Spaceship" ? "cyan" : undefined}>
+              {"  "}{l.name.padEnd(12)}
+            </Text>
+            <Text>{l.url}</Text>
+          </Text>
+        ))}
+        <Box height={1} />
+        <Text dimColor>Press [o] to open Spaceship search in browser.</Text>
       </Box>
     );
   }
@@ -100,23 +135,28 @@ function Detail({ info }: { info?: DomainInfo }) {
       {info.statuses.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           <Text bold>Status</Text>
-          {info.statuses.map((s) => {
-            const meta = getStatusMeta(s);
-            const color =
-              meta.severity === "good" ? "green" :
-              meta.severity === "warn" ? "yellow" :
-              meta.severity === "bad" ? "red" : "cyan";
-            return (
-              <Box key={meta.code} flexDirection="column">
-                <Text>
-                  <Text color={color}>● </Text>
-                  <Text>{meta.code}</Text>
-                  <Text dimColor>  {meta.label}</Text>
-                </Text>
-                <Text dimColor>    {meta.description}</Text>
-              </Box>
-            );
-          })}
+          {(() => {
+            const seen = new Set<string>();
+            return info.statuses
+              .map((s) => getStatusMeta(s))
+              .filter((m) => (seen.has(m.code) ? false : (seen.add(m.code), true)))
+              .map((meta) => {
+                const color =
+                  meta.severity === "good" ? "green" :
+                  meta.severity === "warn" ? "yellow" :
+                  meta.severity === "bad" ? "red" : "cyan";
+                return (
+                  <Box key={meta.code} flexDirection="column">
+                    <Text>
+                      <Text color={color}>● </Text>
+                      <Text>{meta.code}</Text>
+                      <Text dimColor>  {meta.label}</Text>
+                    </Text>
+                    <Text dimColor>    {meta.description}</Text>
+                  </Box>
+                );
+              });
+          })()}
         </Box>
       )}
 
@@ -143,38 +183,77 @@ function Detail({ info }: { info?: DomainInfo }) {
   );
 }
 
+const DOMAIN_RE = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+
 function App({ domains }: Props) {
-  const [entries, setEntries] = useState<Entry[]>(
-    domains.map((d) => ({ domain: d, state: "loading" })),
-  );
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [active, setActive] = useState(0);
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const { exit } = useApp();
 
+  const startLookup = (domain: string) => {
+    const id = nextId++;
+    const entry: Entry = { id, domain, state: "loading" };
+    setEntries((prev) => {
+      const next = [entry, ...prev];
+      setActive(0);
+      return next;
+    });
+    lookup(domain).then((info) => {
+      setEntries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, state: "ready", info } : e)),
+      );
+    });
+  };
+
+  const submit = (raw: string) => {
+    const tokens = raw
+      .split(/[\s,]+/)
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+    if (tokens.length === 0) {
+      setError(null);
+      return;
+    }
+    const valid = tokens.filter((t) => DOMAIN_RE.test(t));
+    const invalid = tokens.filter((t) => !DOMAIN_RE.test(t));
+    if (invalid.length > 0 && valid.length === 0) {
+      setError(`not a valid domain: ${invalid.join(", ")}`);
+      return;
+    }
+    setError(null);
+    for (const d of valid) startLookup(d);
+    setQuery("");
+  };
+
+  // Initial preloaded domains (from CLI args)
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      for (let i = 0; i < domains.length; i++) {
-        const info = await lookup(domains[i]!);
-        if (cancelled) return;
+    for (const d of domains) startLookup(d);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useInput((input, key) => {
+    if (key.ctrl && input === "c") exit();
+    if (key.escape) exit();
+
+    // navigation only when something is in the list
+    if (entries.length > 0) {
+      if (key.tab && !key.shift) {
+        setActive((a) => (entries.length === 0 ? 0 : (a + 1) % entries.length));
+      } else if (key.tab && key.shift) {
+        setActive((a) => (entries.length === 0 ? 0 : (a - 1 + entries.length) % entries.length));
+      } else if (key.ctrl && input === "o") {
+        const cur = entries[active];
+        if (cur?.info) open(spaceshipSearchUrl(cur.domain)).catch(() => {});
+      } else if (key.ctrl && input === "d") {
+        // delete current entry
         setEntries((prev) => {
-          const next = [...prev];
-          next[i] = { domain: domains[i]!, state: "ready", info };
+          const next = prev.filter((_, i) => i !== active);
+          setActive((a) => Math.max(0, Math.min(a, next.length - 1)));
           return next;
         });
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [domains]);
-
-  useInput((input, key) => {
-    if (input === "q" || (key.ctrl && input === "c")) exit();
-    if (key.downArrow || input === "j") setActive((a) => Math.min(a + 1, entries.length - 1));
-    if (key.upArrow || input === "k") setActive((a) => Math.max(0, a - 1));
-    if (input === "o") {
-      const cur = entries[active];
-      if (cur?.info) open(spaceshipSearchUrl(cur.domain)).catch(() => {});
     }
   });
 
@@ -183,37 +262,67 @@ function App({ domains }: Props) {
   return (
     <Box flexDirection="column" paddingX={1}>
       <Box>
-        <Text bold>whoiz</Text>
-        <Text dimColor>  ↑/↓ navigate · o open in browser · q quit</Text>
+        <Text bold color="cyan">whoiz</Text>
+        <Text dimColor>  type a domain and hit enter · multiple? separate by space or comma · esc to quit</Text>
       </Box>
-      <Box marginTop={1}>
-        <Box flexDirection="column" width={28} marginRight={2}>
-          {entries.map((e, i) => (
-            <Box key={e.domain}>
-              <Text color={i === active ? "cyan" : undefined} bold={i === active}>
-                {i === active ? "▸ " : "  "}
-                {e.domain}
-              </Text>
-              <Text dimColor>
-                {"  "}
-                {e.state === "loading" ? "…" : e.info?.state ?? ""}
-              </Text>
-            </Box>
-          ))}
+
+      <Box marginTop={1} borderStyle="round" borderColor={error ? "red" : "cyan"} paddingX={1}>
+        <Text color="cyan">❯ </Text>
+        <TextInput
+          value={query}
+          onChange={(v) => {
+            setQuery(v);
+            if (error) setError(null);
+          }}
+          onSubmit={submit}
+          placeholder="example.com or several space-separated…"
+        />
+      </Box>
+      {error && <Text color="red">  {error}</Text>}
+
+      {entries.length === 0 ? (
+        <Box marginTop={1}>
+          <Text dimColor>
+            no lookups yet. try `claude.ai`, `cloudflare.com`, or several at once.
+          </Text>
         </Box>
-        <Box flexDirection="column" flexGrow={1}>
-          <Box marginBottom={1}>
-            <Text bold>{current?.domain}</Text>
-            <Text>  </Text>
-            <StateBadge info={current?.info} />
+      ) : (
+        <Box marginTop={1}>
+          <Box flexDirection="column" width={28} marginRight={2}>
+            <Text dimColor>history (Tab/Shift+Tab)</Text>
+            {entries.map((e, i) => (
+              <Box key={e.id}>
+                <Text color={i === active ? "cyan" : undefined} bold={i === active}>
+                  {i === active ? "▸ " : "  "}
+                  {e.domain.length > 18 ? e.domain.slice(0, 17) + "…" : e.domain}
+                </Text>
+                <Text dimColor>
+                  {"  "}{e.state === "loading" ? "…" : shortBadge(e.info)}
+                </Text>
+              </Box>
+            ))}
           </Box>
-          <Detail info={current?.info} />
+          <Box flexDirection="column" flexGrow={1}>
+            <Box marginBottom={1}>
+              <Text bold>{current?.domain}</Text>
+              <Text>  </Text>
+              <StateBadge info={current?.info} />
+            </Box>
+            <Detail info={current?.info} />
+          </Box>
         </Box>
+      )}
+
+      <Box marginTop={1}>
+        <Text dimColor>
+          Tab/Shift+Tab switch · Ctrl+O open Spaceship · Ctrl+D drop entry · Esc quit
+        </Text>
       </Box>
     </Box>
   );
 }
 
 export function startTui(domains: string[]) {
+  // ensure a clean canvas — the previous prompt line is preserved by the host shell
   render(<App domains={domains} />);
 }

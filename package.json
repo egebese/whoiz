@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "ink": "^5.1.0",
+    "ink-text-input": "^6.0.0",
     "meow": "^13.2.0",
     "open": "^10.1.0",
     "picocolors": "^1.1.1",

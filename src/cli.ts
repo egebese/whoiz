@@ -74,15 +74,22 @@ async function main() {
     : [];
   const fields = [...new Set([...posFields, ...flagFields])];
 
-  if (domains.length === 0) {
-    cli.showHelp(0);
-    return;
-  }
-
-  if (cli.flags.tui) {
-    const { startTui } = await import("./tui.js");
-    startTui(domains);
-    return;
+  // Bare `whoiz` (no domains and no register flag) → launch interactive TUI.
+  // Use --help to see usage. --tui works the same way, just explicit.
+  if (cli.flags.tui || (domains.length === 0 && !cli.flags.register)) {
+    if (!process.stdin.isTTY) {
+      // No interactive TTY available — bail out helpfully instead of crashing.
+      if (domains.length === 0) {
+        cli.showHelp(0);
+        return;
+      }
+      // domains were piped in with --tui flag; fall through to non-TUI render
+      cli.flags.tui = false;
+    } else {
+      const { startTui } = await import("./tui.js");
+      startTui(domains);
+      return;
+    }
   }
 
   if (cli.flags.register && domains[0]) {
