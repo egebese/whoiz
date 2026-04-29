@@ -51,6 +51,9 @@ const cli = meow(
       concurrency: { type: "number", shortFlag: "c", default: 4 },
       timeout: { type: "number", shortFlag: "t", default: 8000 },
       completion: { type: "string" },
+      note: { type: "string", shortFlag: "n" },
+      force: { type: "boolean", default: false },
+      verbose: { type: "boolean", default: false },
     },
   },
 );
@@ -124,10 +127,15 @@ async function main() {
 
   // Subcommand dispatch — has to happen before parseArgs since these aren't domains.
   if (cli.input[0] === "watch") {
-    process.exit(await watchCmd(cli.input.slice(1)));
+    process.exit(await watchCmd(cli.input.slice(1), {
+      note: cli.flags.note,
+      force: cli.flags.force,
+      verbose: cli.flags.verbose,
+      json: cli.flags.json,
+    }));
   }
   if (cli.input[0] === "history") {
-    process.exit(historyCmd(cli.input.slice(1)));
+    process.exit(historyCmd(cli.input.slice(1), { json: cli.flags.json }));
   }
   if (cli.input[0] === "debug") {
     process.exit(debugCmd(cli.input.slice(1)));
