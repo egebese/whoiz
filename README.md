@@ -211,6 +211,10 @@ whoiz --completion fish > ~/.config/fish/completions/whoiz.fish
 | PENDING TRANSFER | `pendingTransfer` set — transfer in flight (~5 days).                           |
 | HOLD             | `clientHold` / `serverHold` set — DNS suspended.                                |
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
+
 ## Contributing
 
 PRs and issues welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening

@@ -42,11 +42,18 @@ function tierColor(t?: Tier): (s: string) => string {
 
 // ─── watch subcommand ──────────────────────────────────────────────────────
 
-export async function watchCmd(args: string[]): Promise<number> {
+export interface WatchOpts {
+  note?: string;
+  force?: boolean;
+  verbose?: boolean;
+  json?: boolean;
+}
+
+export async function watchCmd(args: string[], opts: WatchOpts = {}): Promise<number> {
   const [sub, ...rest] = args;
   switch (sub) {
     case "add":
-      return watchAdd(rest);
+      return watchAdd(rest, opts);
     case "rm":
     case "remove":
       return watchRemove(rest);
@@ -55,7 +62,7 @@ export async function watchCmd(args: string[]): Promise<number> {
     case undefined:
       return watchList();
     case "tick":
-      return watchTick(rest);
+      return watchTick(opts);
     case "run":
       return watchRun(rest);
     case "install":
@@ -76,19 +83,14 @@ export async function watchCmd(args: string[]): Promise<number> {
   }
 }
 
-async function watchAdd(args: string[]): Promise<number> {
-  const noteIdx = args.findIndex((a) => a === "--note" || a === "-n");
-  const note = noteIdx >= 0 ? args[noteIdx + 1] : undefined;
-  const domains = args.filter((a, i) => {
-    if (noteIdx >= 0 && (i === noteIdx || i === noteIdx + 1)) return false;
-    return DOMAIN_RE.test(a);
-  });
+async function watchAdd(args: string[], opts: WatchOpts): Promise<number> {
+  const domains = args.filter((a) => DOMAIN_RE.test(a));
   if (domains.length === 0) {
     process.stderr.write("whoiz watch add <domain> [--note \"...\"]\n");
     return 2;
   }
   for (const d of domains) {
-    const { tier } = await addWatch(d.toLowerCase(), note);
+    const { tier } = await addWatch(d.toLowerCase(), opts.note);
     process.stdout.write(`${pc.green("✓")} watching ${pc.bold(d)} ${pc.dim("(tier: " + tier + ", interval: " + humanInterval(intervalForTier(tier)) + ")")}\n`);
   }
   const st = scheduler.status();
@@ -155,11 +157,9 @@ async function watchList(): Promise<number> {
   return 0;
 }
 
-async function watchTick(args: string[]): Promise<number> {
-  const force = args.includes("--force");
-  const verbose = args.includes("--verbose") || args.includes("-v");
-  const results = await tickAll(force);
-  if (verbose) {
+async function watchTick(opts: WatchOpts): Promise<number> {
+  const results = await tickAll(opts.force ?? false);
+  if (opts.verbose) {
     for (const r of results) {
       const note = r.error
         ? pc.red(`error: ${r.error}`)
@@ -242,13 +242,13 @@ function humanInterval(seconds: number): string {
 
 // ─── history subcommand ────────────────────────────────────────────────────
 
-export function historyCmd(args: string[]): number {
-  const [domain, ...rest] = args;
+export function historyCmd(args: string[], opts: { json?: boolean } = {}): number {
+  const [domain] = args;
   if (!domain) {
     process.stderr.write("whoiz history <domain> [--json]\n");
     return 2;
   }
-  const json = rest.includes("--json");
+  const json = opts.json ?? false;
   const snaps = readHistory(domain.toLowerCase());
   if (snaps.length === 0) {
     process.stderr.write(`No history for ${domain}. Lookups recorded automatically when added to a watch (\`whoiz watch add\`).\n`);
