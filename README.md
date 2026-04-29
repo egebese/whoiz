@@ -7,7 +7,12 @@ explanations, and a one-keystroke jump to a registrar when a domain is free.
 npx whoiz google.com
 ```
 
-![status](https://img.shields.io/badge/node-%3E%3D18-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue)
+[![npm version](https://img.shields.io/npm/v/whoiz.svg?color=cb3837&logo=npm)](https://www.npmjs.com/package/whoiz)
+[![npm downloads](https://img.shields.io/npm/dm/whoiz.svg?color=cb3837)](https://www.npmjs.com/package/whoiz)
+[![GitHub stars](https://img.shields.io/github/stars/egebese/whoiz.svg?style=social)](https://github.com/egebese/whoiz/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/egebese/whoiz.svg)](https://github.com/egebese/whoiz/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 
 ## Features
 
@@ -108,6 +113,19 @@ whoiz mybrand.shop -r
 | PENDING DELETE   | `pendingDelete` set — drop in ~5 days, then public registration opens.          |
 | PENDING TRANSFER | `pendingTransfer` set — transfer in flight (~5 days).                           |
 | HOLD             | `clientHold` / `serverHold` set — DNS suspended.                                |
+
+## Contributing
+
+PRs and issues welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening
+one — it covers local setup, the project layout, what makes a good change, and
+the release flow.
+
+If `whoiz` saved you a tab, a star helps others find it:
+[![Star on GitHub](https://img.shields.io/github/stars/egebese/whoiz?style=social)](https://github.com/egebese/whoiz/stargazers)
+
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=egebese/whoiz&type=Date)](https://star-history.com/#egebese/whoiz&Date)
 
 ## License
 
