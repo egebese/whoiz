@@ -5,13 +5,14 @@ import { lookup, lookupMany } from "./lookup.js";
 import { renderDomain, renderJson } from "./render.js";
 import { spaceshipSearchUrl } from "./links.js";
 import { completionScript } from "./completion.js";
+import { watchCmd, historyCmd, debugCmd } from "./subcommands.js";
 
 const cli = meow(
   `
   ${pc.bold("Usage")}
     $ whoiz <domain> [<domain> …] [fields]
-    $ whoiz <domain> status,period
-    $ whoiz <domain> status/period         (slash also accepted)
+    $ whoiz watch <add|list|remove|status|tick|run|install|uninstall|doctor>
+    $ whoiz history <domain>
 
   ${pc.bold("Options")}
     --tui              Interactive TUI mode (ink)
@@ -19,8 +20,8 @@ const cli = meow(
     --no-open          Don't auto-open Spaceship when a domain is available
     --register, -r     Force-open Spaceship for the first domain
     --fields, -f       Comma-separated field list (alt to positional fields)
-    --watch, -w        Re-poll on interval and redraw in place
-    --interval, -i     Watch interval in seconds (default 60)
+    --watch, -w        Re-poll on interval and redraw in place (foreground)
+    --interval, -i     Foreground watch interval in seconds (default 60)
     --concurrency, -c  Parallelism for bulk lookups (default 4)
     --timeout, -t      Per-domain timeout ms (default 8000)
     --completion       Print shell completion script (bash|zsh|fish)
@@ -32,10 +33,10 @@ const cli = meow(
 
   ${pc.bold("Examples")}
     $ whoiz google.com
-    $ whoiz google.com cloudflare.com expired-domain.shop
     $ whoiz google.com status,period
-    $ whoiz somenewname.io --no-open
-    $ whoiz google.com --json
+    $ whoiz watch add mydomain.com         ${pc.dim("# adaptive background polling")}
+    $ whoiz watch list
+    $ whoiz history mydomain.com           ${pc.dim("# diff history of registrar/ns/state")}
 `,
   {
     importMeta: import.meta,
@@ -119,6 +120,17 @@ async function main() {
     }
     process.stdout.write(script);
     return;
+  }
+
+  // Subcommand dispatch — has to happen before parseArgs since these aren't domains.
+  if (cli.input[0] === "watch") {
+    process.exit(await watchCmd(cli.input.slice(1)));
+  }
+  if (cli.input[0] === "history") {
+    process.exit(historyCmd(cli.input.slice(1)));
+  }
+  if (cli.input[0] === "debug") {
+    process.exit(debugCmd(cli.input.slice(1)));
   }
 
   const { domains, fields: posFields } = parseArgs(cli.input);
