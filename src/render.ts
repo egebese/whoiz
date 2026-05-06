@@ -2,7 +2,7 @@ import pc from "picocolors";
 import stringWidth from "string-width";
 import type { DomainInfo } from "./types.js";
 import { getStatusMeta } from "./status.js";
-import { alternativeRegisterLinks, spaceshipSearchUrl } from "./links.js";
+import { alternativeRegisterLinks, spaceshipSearchUrl, spaceshipTransferUrl } from "./links.js";
 
 const TERM_COLS = Math.max(60, Math.min(process.stdout.columns ?? 100, 110));
 const BOX_WIDTH = TERM_COLS;
@@ -222,14 +222,18 @@ export function renderDomain(info: DomainInfo, opts: RenderOptions = {}): string
   }
 
   if (want("links") || fields?.has("links")) {
-    const url = spaceshipSearchUrl(info.domain);
-    const head = `  ${pc.cyan("Spaceship")}  `;
-    const headW = stringWidth(head);
-    const avail = BOX_WIDTH - 4 - headW;
-    const urlOut = stringWidth(url) <= avail ? pc.underline(url) : pc.underline(url.slice(0, avail - 1) + "…");
+    const fmtUrl = (head: string, url: string) => {
+      const headW = stringWidth(head);
+      const avail = BOX_WIDTH - 4 - headW;
+      const urlOut = stringWidth(url) <= avail ? pc.underline(url) : pc.underline(url.slice(0, avail - 1) + "…");
+      return row(head + urlOut);
+    };
     lines.push(emptyRow());
     lines.push(row(pc.bold("Watch / register on drop:")));
-    lines.push(row(head + urlOut));
+    lines.push(fmtUrl(`  ${pc.cyan("Spaceship")}  `, spaceshipSearchUrl(info.domain)));
+    lines.push(emptyRow());
+    lines.push(row(pc.bold("Transfer to Spaceship:")));
+    lines.push(fmtUrl(`  ${pc.cyan("Transfer ")}  `, spaceshipTransferUrl(info.domain)));
   }
 
   if (fields?.has("raw") && info.raw) {

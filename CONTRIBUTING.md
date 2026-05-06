@@ -32,7 +32,7 @@ src/
 ├── status.ts     EPP status code table + lookup
 ├── render.ts     non-TUI box renderer (picocolors)
 ├── tui.tsx       Ink-based interactive TUI
-├── affiliate.ts  Spaceship + alt-registrar URL builders
+├── links.ts     Spaceship + alt-registrar URL builders
 └── types.ts      shared types
 
 bin/whoiz.js      shim that imports dist/cli.js
@@ -66,8 +66,7 @@ Not a fit (please open an issue first to discuss):
 - Adding a heavyweight dependency (we keep deps small — picocolors over chalk,
   meow over commander, no lodash).
 - Changes to which registrar is shown first in the available-domain panel —
-  Spaceship is the default sponsor of this CLI; alt-registrars stay listed but
-  the order is opinionated.
+  the order is opinionated; alt-registrars stay listed.
 - Telemetry, analytics, or anything that calls home.
 
 ## Style
